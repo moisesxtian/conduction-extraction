@@ -1,0 +1,30 @@
+
+__pycache__/
+
+venv/
+
+*.log
+
+# Ignore results and runs directories
+runs/
+results/
+
+# Uploaded images
+uploads/
+*.jpg
+*.png
+*.jpeg
+
+# Python package management
+Pipfile
+Pipfile.lock
+
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS-specific files
+.DS_Store
+Thumbs.db
