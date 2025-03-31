@@ -20,7 +20,7 @@ def detect_and_classify(image_path):
         return {"Make": "Unknown", "Model": "Unknown"}
 
     # Step 1: Car detection
-    car_results = car_detector(image, save=True)
+    car_results = car_detector(image, save=True, exist_ok=True)
     
     highest_conf = 0
     best_car = None
@@ -81,5 +81,5 @@ def detect_and_classify(image_path):
     }
 
 if __name__ == "__main__":
-    result = detect_and_classify("tesla-model-s-lifestyle-image-2022.jpg")  # Replace with your image path
+    result = detect_and_classify("test2.jpg")  # Replace with your image path
     print(result)
