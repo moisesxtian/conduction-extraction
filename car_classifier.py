@@ -3,9 +3,8 @@ import cv2
 
 # Load YOLO models
 car_detector = YOLO("models/yolov8_car_detection.pt")  # Car detection model
-#brand_detector = YOLO("models/yolov8_brand_recognition.pt")  # Brand recognition model
-brand_detector = YOLO("models/last.pt")  # Brand recognition model
-print(brand_detector.names)
+brand_detector = YOLO("models/yolov8_brand_detection.pt")  # Brand recognition model
+
 classifiers = {
     "Tesla": YOLO("models/Model Classifier/Tesla_classifier_YOLO.pt"),
     "Toyota": YOLO("models/Model Classifier/Toyota_classifier_YOLO.pt"),
@@ -15,7 +14,7 @@ classifiers = {
     # Add more brands if needed
 }
 
-BRAND_CONF_THRESH = 0.1  # Minimum confidence required for brand recognition
+BRAND_CONF_THRESH = 0.5  # Minimum confidence required for brand recognition
 MODEL_CONF_THRESH = 0.5  # Minimum confidence required for model classification
 
 def detect_and_classify(image_path):
@@ -27,25 +26,37 @@ def detect_and_classify(image_path):
     # Step 1: Car detection
     car_results = car_detector(image, save=True, exist_ok=True)
     
-    highest_conf = 0
+    largest_area = 0
     best_car = None
 
+    # Loop through all detections and select the one with the largest area
     for result in car_results:
         for i in range(len(result.boxes.cls)):
             class_idx = int(result.boxes.cls[i])
             confidence = float(result.boxes.conf[i])
-            
-            if result.names[class_idx] == "car" or "truck" and confidence > highest_conf:
-                highest_conf = confidence
-                best_car = result.boxes.xyxy[i]
+
+            # Ensure to check for both "car" and "truck" explicitly
+            if result.names[class_idx] in ["car", "truck"]:
+                # Get the coordinates of the bounding box
+                x1, y1, x2, y2 = result.boxes.xyxy[i]
+                # Calculate the area of the bounding box
+                width = x2 - x1
+                height = y2 - y1
+                area = width * height
+                
+                # Update largest_area if this bounding box is larger
+                if area > largest_area:
+                    largest_area = area
+                    best_car = result.boxes.xyxy[i]  # Get the coordinates of the largest bounding box
 
     if best_car is None:
         print("No car detected.")
         return {"Make": "Unknown", "Model": "Unknown"}
 
+    # Crop the image using the coordinates of the largest bounding box
     x1, y1, x2, y2 = map(int, best_car)
     car_crop = image[y1:y2, x1:x2]
-    print(f"Highest confidence car detected: {highest_conf*100:.2f}%")
+    print(f"Largest bounding box with area {largest_area:.2f} pixels detected.")
 
     # Step 2: Brand recognition
     brand = "Unknown"
