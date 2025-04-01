@@ -3,10 +3,15 @@ import cv2
 
 # Load YOLO models
 car_detector = YOLO("models/yolov8_car_detection.pt")  # Car detection model
-brand_detector = YOLO("models/yolov8_brand_recognition.pt")  # Brand recognition model
+#brand_detector = YOLO("models/yolov8_brand_recognition.pt")  # Brand recognition model
+brand_detector = YOLO("models/last.pt")  # Brand recognition model
+print(brand_detector.names)
 classifiers = {
     "Tesla": YOLO("models/Model Classifier/Tesla_classifier_YOLO.pt"),
     "Toyota": YOLO("models/Model Classifier/Toyota_classifier_YOLO.pt"),
+    "Mitsubishi": YOLO("models/Model Classifier/Mitsubishi_classifier_YOLO.pt"),
+    "Nissan": YOLO("models/Model Classifier/Nissan_classifier_YOLO.pt"),
+    "Audi": YOLO("models/Model Classifier/Audi_classifier_YOLO.pt"),
     # Add more brands if needed
 }
 
@@ -30,7 +35,7 @@ def detect_and_classify(image_path):
             class_idx = int(result.boxes.cls[i])
             confidence = float(result.boxes.conf[i])
             
-            if result.names[class_idx] == "car" and confidence > highest_conf:
+            if result.names[class_idx] == "car" or "truck" and confidence > highest_conf:
                 highest_conf = confidence
                 best_car = result.boxes.xyxy[i]
 
@@ -46,7 +51,7 @@ def detect_and_classify(image_path):
     brand = "Unknown"
     brand_confidence = 0.0
     
-    brand_results = brand_detector(car_crop)
+    brand_results = brand_detector(car_crop, save=True, project="pred")
     if brand_results and len(brand_results[0].boxes.cls) > 0:
         brand_idx = int(brand_results[0].boxes.cls[0])
         brand = brand_results[0].names[brand_idx]
@@ -77,7 +82,8 @@ def detect_and_classify(image_path):
     
     return {
         "Make": brand,
-        "Model": top_model_name
+        "Model": top_model_name,
+        "Confidence": f"{brand_confidence*100:.2f}%"
     }
 
 if __name__ == "__main__":
