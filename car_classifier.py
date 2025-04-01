@@ -3,7 +3,7 @@ import cv2
 
 # Load YOLO models
 car_detector = YOLO("models/yolov8_car_detection.pt")  # Car detection model
-brand_detector = YOLO("models/yolov8_brand_detection.pt")  # Brand recognition model
+brand_detector = YOLO("models/yolov8_cardetect_v1.pt")  # Brand recognition model
 
 classifiers = {
     "Tesla": YOLO("models/Model Classifier/Tesla_classifier_YOLO.pt"),
@@ -14,8 +14,8 @@ classifiers = {
     # Add more brands if needed
 }
 
-BRAND_CONF_THRESH = 0.5  # Minimum confidence required for brand recognition
-MODEL_CONF_THRESH = 0.5  # Minimum confidence required for model classification
+BRAND_CONF_THRESH = 0.0  # Minimum confidence required for brand recognition
+MODEL_CONF_THRESH = 0.0 # Minimum confidence required for model classification
 
 def detect_and_classify(image_path):
     image = cv2.imread(image_path)
@@ -24,7 +24,7 @@ def detect_and_classify(image_path):
         return {"Make": "Unknown", "Model": "Unknown"}
 
     # Step 1: Car detection
-    car_results = car_detector(image, save=True, exist_ok=True)
+    car_results = car_detector(image, save=True, exist_ok=True,project="pred", name="car")
     
     largest_area = 0
     best_car = None
@@ -62,7 +62,7 @@ def detect_and_classify(image_path):
     brand = "Unknown"
     brand_confidence = 0.0
     
-    brand_results = brand_detector(car_crop, save=True, project="pred")
+    brand_results = brand_detector(car_crop, save=True, project="pred", exist_ok=True)
     if brand_results and len(brand_results[0].boxes.cls) > 0:
         brand_idx = int(brand_results[0].boxes.cls[0])
         brand = brand_results[0].names[brand_idx]
